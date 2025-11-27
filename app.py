@@ -13,7 +13,6 @@ from sklearn.metrics import (
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 import plotly.express as px
 import plotly.graph_objects as go
-import kagglehub
 import os
 
 # Configuración de la página
@@ -34,32 +33,20 @@ modo = st.sidebar.radio(
     ["🏠 Inicio", "📊 Modo Supervisado", "🔍 Modo No Supervisado", "💾 Exportación"]
 )
 
-# ========== CARGA DEL DATASET (PARCHE NUEVO PARA kagglehub) ==========
+# ========== CARGA DEL DATASET DESDE ARCHIVO LOCAL ==========
 
 @st.cache_data
 def cargar_datos():
     try:
-        with st.spinner("Descargando dataset desde Kaggle..."):
-            path = kagglehub.dataset_download("ayeshaimran123/social-media-and-mental-health-balance")
-
-            # Buscar primer CSV dentro del dataset
-            csv_path = None
-            for root, dirs, files in os.walk(path):
-                for f in files:
-                    if f.endswith(".csv"):
-                        csv_path = os.path.join(root, f)
-                        break
-
-            if csv_path is None:
-                st.error("No se encontró un archivo CSV dentro del dataset.")
-                return None
-
-            df = pd.read_csv(csv_path)
+        with st.spinner("Cargando dataset local..."):
+            df = pd.read_csv("Mental_Health_and_Social_Media_Balance_Dataset.csv")  # Ajusta el nombre si es diferente
             return df
-
+    except FileNotFoundError:
+        st.error("❌ No se encontró el archivo 'mental_health.csv' en /data/")
+        st.info("Verifica que la ruta correcta sea:  /data/mental_health.csv")
+        return None
     except Exception as e:
         st.error(f"Error al cargar el dataset: {str(e)}")
-        st.info("💡 Asegúrate de tener instalado kagglehub: pip install kagglehub")
         return None
 
 # Cargar dataset
@@ -146,7 +133,7 @@ if modo == "🏠 Inicio":
     st.dataframe(df_original.head(10), use_container_width=True)
 
     st.subheader("📊 Distribución de la Variable Objetivo")
-    fig = px.histogram(df_original, x=target_column, color_discrete_sequence=['#636EFA'])
+    fig = px.histogram(df_original, x=target_column)
     st.plotly_chart(fig, use_container_width=True)
 
 # ================== MODO SUPERVISADO ==================
